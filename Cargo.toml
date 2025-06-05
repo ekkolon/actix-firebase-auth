@@ -8,7 +8,7 @@ repository = "https://github.com/ekkolon/actix-firebase-auth"
 license = "MIT OR Apache-2.0"
 categories = ["web-programming", "authentication"]
 keywords = ["actix", "firebase", "auth", "jwt", "jwk"]
-rust-version = "1.81"
+rust-version = "1.82"
 
 [features]
 default = ["openssl"]

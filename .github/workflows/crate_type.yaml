@@ -6,6 +6,8 @@ on:
         value: ${{ jobs.check-crate-type.outputs.is_lib }}
       is_bin:
         value: ${{ jobs.check-crate-type.outputs.is_bin }}
+permissions:
+  contents: read
 jobs:
   check-crate-type:
     runs-on: ubuntu-latest

@@ -18,6 +18,8 @@ on:
           - patch
           - minor
           - major
+permissions:
+  contents: read
 jobs:
   check-if-lib:
     uses: ./.github/workflows/crate_type.yaml

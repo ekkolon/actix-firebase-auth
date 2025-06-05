@@ -4,6 +4,8 @@ name: Cargo deny
 on:
   workflow_call:
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   cargo-deny:
     runs-on: ubuntu-latest

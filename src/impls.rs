@@ -1,10 +1,9 @@
-use actix_web::error::ErrorUnauthorized;
-use actix_web::http::StatusCode;
+use actix_web::error::InternalError;
+use actix_web::http::{StatusCode, header};
 use actix_web::{FromRequest, HttpRequest, dev, http::header::Header, web};
 use actix_web::{HttpResponse, ResponseError};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
 use futures::future::{Ready, err, ok};
-use tracing::debug;
 
 use crate::jwk::{PublicKeysError, VerificationError};
 use crate::{Error, FirebaseAuth, FirebaseUser};
@@ -70,15 +69,6 @@ impl ResponseError for Error {
     }
 }
 
-fn get_bearer_token(header: &str) -> Option<String> {
-    let prefix_len = "Bearer ".len();
-
-    match header.len() {
-        l if l < prefix_len => None,
-        _ => Some(header[prefix_len..].to_string()),
-    }
-}
-
 impl FromRequest for FirebaseUser {
     type Error = actix_web::Error;
     type Future = Ready<Result<Self, Self::Error>>;
@@ -86,18 +76,70 @@ impl FromRequest for FirebaseUser {
     fn from_request(req: &HttpRequest, _: &mut dev::Payload) -> Self::Future {
         let firebase_auth = req
             .app_data::<web::Data<FirebaseAuth>>()
-            .expect("must initialize FirebaseAuth in Application Data");
+            .expect("FirebaseAuth should be initialized in application data");
 
         let bearer = match Authorization::<Bearer>::parse(req) {
-            Err(e) => return err(e.into()),
-            Ok(v) => get_bearer_token(&v.to_string()).unwrap_or_default(),
+            Ok(header) => header.into_scheme(),
+            Err(_) => {
+                // Per RFC 7235, a 401 Unauthorized response MUST be returned when the
+                // Authorization header is missing, malformed, or uses an unsupported scheme.
+                //
+                // Actix defaults to 400 Bad Request for parsing failures, which is incorrect
+                // in the context of authentication. We explicitly return 401 and include a
+                // WWW-Authenticate header to guide the client on how to authenticate.
+                return err(missing_or_malformed_auth_header());
+            }
         };
 
-        debug!("Got bearer token {}", bearer);
+        let id_token = bearer.token();
 
-        match firebase_auth.verify(&bearer) {
-            Err(e) => err(ErrorUnauthorized(format!("Failed to verify Token {}", e))),
+        match firebase_auth.verify(id_token) {
             Ok(user) => ok(user),
+            Err(crate::Error::VerificationError(VerificationError::CannotDecodePublicKeys)) => {
+                err(internal_token_verification_error())
+            }
+            Err(other) => err(invalid_token_error(&other)),
         }
     }
+}
+
+fn internal_token_verification_error() -> actix_web::Error {
+    let response =
+        HttpResponse::InternalServerError().body("Internal error during token verification");
+
+    InternalError::from_response("token_verification_failure", response).into()
+}
+
+fn missing_or_malformed_auth_header() -> actix_web::Error {
+    unauthorized_with_www_authenticate(
+        "invalid_request",
+        "Authorization header missing or not using Bearer scheme",
+        "Authorization header is missing or malformed",
+    )
+}
+
+fn invalid_token_error(err: &crate::Error) -> actix_web::Error {
+    unauthorized_with_www_authenticate(
+        "invalid_token",
+        &err.to_string(),
+        format!("Failed to verify Firebase ID token: {}", err),
+    )
+}
+
+/// Constructs a generic `actix_web::Error` with a `WWW-Authenticate` header if needed.
+fn unauthorized_with_www_authenticate(
+    www_error_code: &str,
+    www_error_description: &str,
+    body: impl Into<String>,
+) -> actix_web::Error {
+    let header_value = format!(
+        r#"Bearer realm="firebase", error="{}", error_description="{}""#,
+        www_error_code, www_error_description
+    );
+
+    let response = HttpResponse::Unauthorized()
+        .insert_header((header::WWW_AUTHENTICATE, header_value))
+        .body(body.into());
+
+    InternalError::from_response("auth_error", response).into()
 }

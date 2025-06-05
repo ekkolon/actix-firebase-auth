@@ -2,6 +2,8 @@ name: Check MSRV
 on:
   workflow_call:
   workflow_dispatch:
+permissions:
+  contents: read
 jobs:
   check-msrv:
     runs-on: ubuntu-latest

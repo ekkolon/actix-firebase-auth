@@ -4,7 +4,7 @@ use serde_json::{Map, Value};
 /// Represents the decoded JWT claims from a Firebase Authentication token.
 ///
 /// This struct maps to the standard fields provided by Firebase ID tokens.
-/// See: https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_a_third-party_jwt_library
+/// See: <https://firebase.google.com/docs/auth/admin/verify-id-tokens#verify_id_tokens_using_a_third-party_jwt_library>
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct FirebaseUser {
     /// Issuer of the token (typically Firebase project URL)

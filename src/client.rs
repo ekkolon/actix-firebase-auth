@@ -4,14 +4,16 @@ use std::{
     sync::{Arc, Mutex, RwLock},
     time::Duration,
 };
-use tracing::*;
+use tracing::{debug, warn};
 
-use crate::jwk::{JwkConfig, JwkKeys, JwkVerifier, KeyResponse, PublicKeysError};
+use crate::jwk::{
+    JwkConfig, JwkKeys, JwkVerifier, KeyResponse, PublicKeysError,
+};
 
 /// Fallback timeout if no `max-age` is provided in the Cache-Control header.
 const FALLBACK_TIMEOUT: Duration = Duration::from_secs(60);
 
-/// FirebaseAuth is responsible for verifying Firebase JWT tokens and keeping the
+/// `FirebaseAuth` is responsible for verifying Firebase JWT tokens and keeping the
 /// Google public keys up to date by periodically fetching them.
 ///
 /// It uses the Cache-Control `max-age` directive to schedule the next refresh.
@@ -31,12 +33,13 @@ impl Drop for FirebaseAuth {
 }
 
 impl FirebaseAuth {
-    /// Create a new FirebaseAuth instance with an initial key fetch.
+    /// Create a new `FirebaseAuth` instance with an initial key fetch.
     pub async fn new(project_id: impl AsRef<str>) -> crate::Result<Self> {
         // Fetch the initial set of public keys
         let jwk_keys = Self::get_public_keys().await?;
 
-        let verifier = Arc::new(RwLock::new(JwkVerifier::new(project_id, jwk_keys)));
+        let verifier =
+            Arc::new(RwLock::new(JwkVerifier::new(project_id, jwk_keys)));
         let handler = Arc::new(Mutex::new(Box::new(actix_rt::spawn(async {})))); // placeholder
 
         let mut instance = Self { verifier, handler };
@@ -65,7 +68,10 @@ impl FirebaseAuth {
                     Ok(jwk_keys) => {
                         let mut verifier = verifier_ref.write().unwrap();
                         verifier.set_keys(jwk_keys.clone());
-                        debug!("Updated JWK keys. Next refresh in {:?}", jwk_keys.max_age);
+                        debug!(
+                            "Updated JWK keys. Next refresh in {:?}",
+                            jwk_keys.max_age
+                        );
                         jwk_keys.max_age
                     }
                     Err(err) => {
@@ -95,7 +101,8 @@ impl FirebaseAuth {
             .to_str()
             .map_err(|_| PublicKeysError::EmptyMaxAgeDirective)?;
 
-        let max_age = Self::parse_max_age_value(cache_control).unwrap_or(FALLBACK_TIMEOUT);
+        let max_age = Self::parse_max_age_value(cache_control)
+            .unwrap_or(FALLBACK_TIMEOUT);
 
         let public_keys = response
             .json::<KeyResponse>()
@@ -109,7 +116,9 @@ impl FirebaseAuth {
     }
 
     /// Parses the `max-age` directive from a Cache-Control header string.
-    pub(crate) fn parse_max_age_value(value: &str) -> Result<Duration, PublicKeysError> {
+    pub(crate) fn parse_max_age_value(
+        value: &str,
+    ) -> Result<Duration, PublicKeysError> {
         for directive in value.split(',') {
             let mut parts = directive.trim().splitn(2, '=');
             let key = parts.next().unwrap_or("").trim();
@@ -129,7 +138,7 @@ impl FirebaseAuth {
 
 #[cfg(test)]
 mod tests {
-    use super::{FALLBACK_TIMEOUT, FirebaseAuth};
+    use super::{FirebaseAuth, FALLBACK_TIMEOUT};
     use actix_rt::test;
     use httpmock::Method::GET;
     use httpmock::MockServer;
@@ -151,7 +160,8 @@ mod tests {
             .to_str()
             .map_err(|_| PublicKeysError::EmptyMaxAgeDirective)?;
 
-        let max_age = FirebaseAuth::parse_max_age_value(cache_control).unwrap_or(FALLBACK_TIMEOUT);
+        let max_age = FirebaseAuth::parse_max_age_value(cache_control)
+            .unwrap_or(FALLBACK_TIMEOUT);
 
         let public_keys = response
             .json::<KeyResponse>()

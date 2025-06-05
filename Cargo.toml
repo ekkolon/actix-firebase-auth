@@ -1,13 +1,14 @@
 [package]
 name = "actix-firebase-auth"
 version = "0.2.0"
-edition = "2024"
+edition = "2021"
 description = "Firebase ID token verification for Actix Web using Google's JWKs"
 authors = ["Nelson Dominguez <ekkolon@proton.me>"]
 repository = "https://github.com/ekkolon/actix-firebase-auth"
 license = "MIT OR Apache-2.0"
 categories = ["web-programming", "authentication"]
 keywords = ["actix", "firebase", "auth", "jwt", "jwk"]
+rust-version = "1.82"
 
 [features]
 default = ["openssl"]
@@ -33,12 +34,35 @@ tracing = "0.1.41"
 [dev-dependencies]
 actix-rt = "2.10.0"
 httpmock = "0.7.0"
-rsa = { version = "0.9", features = [] }
+openssl = { version = "0.10.73", features = [] }
 rand = "0.8.5"
 sha2 = "0.10"
 
+
+# https://doc.rust-lang.org/cargo/reference/profiles.html
 [profile.release]
-opt-level = "z"
 codegen-units = 1
+lto = true
+opt-level = "z"
 panic = "abort"
-strip = "debuginfo"
+strip = true
+
+[lints.rust]
+# https://doc.rust-lang.org/rustc/lints/listing/allowed-by-default.html#allowed-by-default-lints
+unsafe_code = "warn"
+unsafe_op_in_unsafe_fn = "warn"
+missing-abi = "warn"
+missing_docs = "warn"
+
+[lints.clippy]
+# https://rust-lang.github.io/rust-clippy/master/
+# pedantic
+pedantic = { level = "warn", priority = -1 }
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+
+# restriction
+undocumented_unsafe_blocks = "warn"
+multiple_unsafe_ops_per_block = "warn"
+allow_attributes = "warn"

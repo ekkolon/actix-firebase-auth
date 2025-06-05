@@ -11,7 +11,7 @@
 //!
 //! #[actix_web::main]
 //! async fn main() -> std::io::Result<()> {
-//!     let auth = FirebaseAuth::new("your-project-id").await;
+//!     let auth = FirebaseAuth::new("your-project-id").await.unwrap(); // Don't forget to handle this error
 //!
 //!     HttpServer::new(move || {
 //!         App::new()

@@ -1,9 +1,9 @@
+use actix_web::rt as actix_rt;
 use serde::de::DeserializeOwned;
 use std::{
     sync::{Arc, Mutex, RwLock},
     time::Duration,
 };
-use tokio::{task::JoinHandle, time::sleep};
 use tracing::*;
 
 use crate::jwk::{JwkConfig, JwkKeys, JwkVerifier, KeyResponse, PublicKeysError};
@@ -19,7 +19,7 @@ const FALLBACK_TIMEOUT: Duration = Duration::from_secs(60);
 #[derive(Clone)]
 pub struct FirebaseAuth {
     verifier: Arc<RwLock<JwkVerifier>>,
-    handler: Arc<Mutex<Box<JoinHandle<()>>>>,
+    handler: Arc<Mutex<Box<actix_rt::task::JoinHandle<()>>>>,
 }
 
 impl Drop for FirebaseAuth {
@@ -32,23 +32,17 @@ impl Drop for FirebaseAuth {
 
 impl FirebaseAuth {
     /// Create a new FirebaseAuth instance with an initial key fetch.
-    ///
-    /// Panics if the initial fetch fails, since the app cannot verify any tokens.
-    pub async fn new(project_id: impl AsRef<str>) -> Self {
-        let jwk_keys = match Self::get_public_keys().await {
-            Ok(keys) => keys,
-            Err(e) => {
-                eprintln!("Error fetching initial public JWK keys: {:?}", e);
-                panic!("Failed to fetch initial public JWK keys. Cannot verify Firebase tokens.");
-            }
-        };
+    pub async fn new(project_id: impl AsRef<str>) -> crate::Result<Self> {
+        // Fetch the initial set of public keys
+        let jwk_keys = Self::get_public_keys().await?;
 
         let verifier = Arc::new(RwLock::new(JwkVerifier::new(project_id, jwk_keys)));
-        let handler = Arc::new(Mutex::new(Box::new(tokio::spawn(async {})))); // placeholder
+        let handler = Arc::new(Mutex::new(Box::new(actix_rt::spawn(async {})))); // placeholder
 
         let mut instance = Self { verifier, handler };
         instance.start_key_update();
-        instance
+
+        Ok(instance)
     }
 
     /// Verifies a Firebase JWT token and deserializes the payload into type `T`.
@@ -65,7 +59,7 @@ impl FirebaseAuth {
     fn start_key_update(&mut self) {
         let verifier_ref = Arc::clone(&self.verifier);
 
-        let task = tokio::spawn(async move {
+        let task = actix_rt::spawn(async move {
             loop {
                 let delay = match Self::get_public_keys().await {
                     Ok(jwk_keys) => {
@@ -80,7 +74,7 @@ impl FirebaseAuth {
                         Duration::from_secs(10)
                     }
                 };
-                sleep(delay).await;
+                actix_rt::time::sleep(delay).await;
             }
         });
 
@@ -135,7 +129,7 @@ impl FirebaseAuth {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use super::{FALLBACK_TIMEOUT, FirebaseAuth};
     use actix_rt::test;
     use httpmock::Method::GET;
     use httpmock::MockServer;
@@ -225,6 +219,8 @@ mod tests {
     #[test]
     async fn background_task_aborts_on_drop() {
         let auth = FirebaseAuth::new("dummy-project").await;
+        assert!(auth.is_ok(), "FirebaseAuth failed to build");
+        let auth = auth.unwrap();
 
         {
             let handler_guard = auth.handler.lock().unwrap();
@@ -234,6 +230,6 @@ mod tests {
         drop(auth); // Triggers Drop which aborts task
 
         // Give a moment for task abort to propagate
-        actix_rt::time::sleep(Duration::from_millis(100)).await;
+        actix_web::rt::time::sleep(Duration::from_millis(100)).await;
     }
 }

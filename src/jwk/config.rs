@@ -22,7 +22,6 @@ impl Deref for Issuer {
     }
 }
 
-#[allow(dead_code)]
 #[derive(Debug)]
 pub struct JwkConfig {
     jwk_url: String,
@@ -31,8 +30,7 @@ pub struct JwkConfig {
 }
 
 impl JwkConfig {
-    pub(crate) const JWK_URL: &str =
-        "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
+    pub(crate) const JWK_URL: &str = "https://www.googleapis.com/service_accounts/v1/jwk/securetoken@system.gserviceaccount.com";
 
     pub fn new(project_id: impl AsRef<str>) -> JwkConfig {
         JwkConfig {
@@ -42,7 +40,7 @@ impl JwkConfig {
         }
     }
 
-    #[allow(unused)]
+    #[expect(unused)]
     pub fn jwk_url(&self) -> &str {
         &self.jwk_url
     }

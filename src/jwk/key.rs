@@ -7,7 +7,7 @@ pub struct KeyResponse {
     pub(crate) keys: Vec<JwkKey>,
 }
 
-#[allow(dead_code)]
+#[expect(dead_code)]
 #[derive(Clone, Debug, Deserialize)]
 pub struct JwkKey {
     pub(crate) e: String,

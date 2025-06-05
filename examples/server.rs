@@ -1,4 +1,4 @@
-//! Minimal Actix Web example demonstrating [FirebaseUser] extractor.
+//! Minimal Actix Web example demonstrating [`FirebaseUser`] extractor.
 //!
 //! This server exposes two endpoints:
 //! - `/protected`: Requires a valid Firebase ID token and returns the decoded user info.
@@ -8,20 +8,20 @@
 //! otherwise it falls back to "your-project-id" for testing purposes.
 
 use actix_firebase_auth::{FirebaseAuth, FirebaseUser};
-use actix_web::{App, HttpResponse, HttpServer, Responder, get, web};
+use actix_web::{get, web, App, HttpResponse, HttpServer, Responder};
 use std::env;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     // Read project ID from environment variable or fallback to a default for dev
-    let project_id =
-        env::var("FIREBASE_PROJECT_ID").unwrap_or_else(|_| "your-project-id".to_string());
+    let project_id = env::var("FIREBASE_PROJECT_ID")
+        .unwrap_or_else(|_| "your-project-id".to_string());
 
     // Initialize Firebase Auth client (fetches public keys etc.)
     let auth = match FirebaseAuth::new(&project_id).await {
         Ok(auth) => auth,
         Err(e) => {
-            eprintln!("Failed to initialize FirebaseAuth: {}", e);
+            eprintln!("Failed to initialize FirebaseAuth: {e}");
             std::process::exit(1);
         }
     };

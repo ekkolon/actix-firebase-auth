@@ -1,6 +1,7 @@
 use thiserror::Error;
 
-pub(super) type VerificationResult<T> = std::result::Result<T, VerificationError>;
+pub(super) type VerificationResult<T> =
+    std::result::Result<T, VerificationError>;
 
 /// Errors that can occur during token verification.
 #[derive(Debug, Error)]

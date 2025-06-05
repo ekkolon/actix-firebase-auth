@@ -1,7 +1,7 @@
 use std::env;
 
-use base64::Engine;
 use base64::prelude::BASE64_STANDARD_NO_PAD;
+use base64::Engine;
 use jsonwebtoken::{Algorithm, DecodingKey, Validation};
 use serde::de::DeserializeOwned;
 
@@ -23,7 +23,10 @@ impl JwkVerifier {
         }
     }
 
-    pub fn verify<T: DeserializeOwned>(&self, token: &str) -> VerificationResult<T> {
+    pub fn verify<T: DeserializeOwned>(
+        &self,
+        token: &str,
+    ) -> VerificationResult<T> {
         if env::var("FIREBASE_AUTH_EMULATOR_HOST").is_ok() {
             let parts: Vec<&str> = token.split('.').collect();
             if parts.len() != 3 {
@@ -40,8 +43,8 @@ impl JwkVerifier {
             return Ok(claims);
         }
 
-        let header =
-            jsonwebtoken::decode_header(token).map_err(|_| VerificationError::InvalidSignature)?;
+        let header = jsonwebtoken::decode_header(token)
+            .map_err(|_| VerificationError::InvalidSignature)?;
 
         if header.alg != Algorithm::RS256 {
             return Err(VerificationError::InvalidKeyAlgorithm);
@@ -57,7 +60,8 @@ impl JwkVerifier {
             None => return Err(VerificationError::NoMatchingKid),
         };
 
-        let decoding_key = DecodingKey::from_rsa_components(&public_key.n, &public_key.e)
+        let decoding_key =
+            DecodingKey::from_rsa_components(&public_key.n, &public_key.e)
             .map_err(|_| VerificationError::CannotDecodePublicKeys)?;
 
         let mut validation = Validation::new(Algorithm::RS256);

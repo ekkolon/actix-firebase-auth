@@ -1,15 +1,15 @@
 use actix_web::error::InternalError;
-use actix_web::http::{StatusCode, header};
-use actix_web::{FromRequest, HttpRequest, dev, http::header::Header, web};
+use actix_web::http::{header, StatusCode};
+use actix_web::{dev, http::header::Header, web, FromRequest, HttpRequest};
 use actix_web::{HttpResponse, ResponseError};
 use actix_web_httpauth::headers::authorization::{Authorization, Bearer};
-use futures::future::{Ready, err, ok};
+use futures::future::{err, ok, Ready};
 
 use crate::jwk::{PublicKeysError, VerificationError};
 use crate::{Error, FirebaseAuth, FirebaseUser};
 
 fn status_code_from_http_err(err: &reqwest::Error) -> StatusCode {
-    let code = err.status().map(|s| s.as_u16()).unwrap_or_else(|| 500);
+    let code = err.status().map_or_else(|| 500, |s| s.as_u16());
     StatusCode::from_u16(code).unwrap_or(StatusCode::BAD_GATEWAY) // Use BAD_GATEWAY for upstream fetch failures
 }
 
@@ -95,17 +95,17 @@ impl FromRequest for FirebaseUser {
 
         match firebase_auth.verify(id_token) {
             Ok(user) => ok(user),
-            Err(crate::Error::VerificationError(VerificationError::CannotDecodePublicKeys)) => {
-                err(internal_token_verification_error())
-            }
+            Err(crate::Error::VerificationError(
+                VerificationError::CannotDecodePublicKeys,
+            )) => err(internal_token_verification_error()),
             Err(other) => err(invalid_token_error(&other)),
         }
     }
 }
 
 fn internal_token_verification_error() -> actix_web::Error {
-    let response =
-        HttpResponse::InternalServerError().body("Internal error during token verification");
+    let response = HttpResponse::InternalServerError()
+        .body("Internal error during token verification");
 
     InternalError::from_response("token_verification_failure", response).into()
 }
@@ -122,7 +122,7 @@ fn invalid_token_error(err: &crate::Error) -> actix_web::Error {
     unauthorized_with_www_authenticate(
         "invalid_token",
         &err.to_string(),
-        format!("Failed to verify Firebase ID token: {}", err),
+        format!("Failed to verify Firebase ID token: {err}"),
     )
 }
 
@@ -133,8 +133,7 @@ fn unauthorized_with_www_authenticate(
     body: impl Into<String>,
 ) -> actix_web::Error {
     let header_value = format!(
-        r#"Bearer realm="firebase", error="{}", error_description="{}""#,
-        www_error_code, www_error_description
+        r#"Bearer realm="firebase", error="{www_error_code}", error_description="{www_error_description}""#
     );
 
     let response = HttpResponse::Unauthorized()

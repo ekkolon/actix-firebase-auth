@@ -12,13 +12,20 @@ feature-depth = 1
 ignore = []
 
 [licenses]
-version = 2
-# allow = []
-# confidence-threshold = 0.8
-# exceptions = []
+confidence-threshold = 0.8
+exceptions = []
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Unicode-3.0",
+    "ISC",
+    "CDLA-Permissive-2.0",
+    "BSD-3-Clause",
+    "Zlib",
+]
 
 [licenses.private]
-ignore = false
+ignore = true
 registries = []
 
 [bans]

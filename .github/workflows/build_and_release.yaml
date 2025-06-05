@@ -31,9 +31,15 @@ on:
         type: boolean
       overwrite_tag:
         type: boolean
+env:
+  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+  GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 jobs:
   validate-input:
     runs-on: ubuntu-latest
+    env:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v4
       - name: Validate input
@@ -139,7 +145,12 @@ jobs:
           tag: ${{  needs.get-version.outputs.new_tag_version }}
       - name: "Import GPG key"
         id: import-gpg
-        uses: ./.github/workflows/setup_gpg.yaml
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ env.GPG_PRIVATE_KEY }}
+          passphrase: ${{ env.GPG_PRIVATE_KEY_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: Delete tag
         if: ${{ steps.check-tag-overwrite.outputs.exists == 'true' }}
         run: |

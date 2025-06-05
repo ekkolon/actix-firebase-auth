@@ -12,6 +12,7 @@ feature-depth = 1
 ignore = []
 
 [licenses]
+version = 2
 allow-osi-fsf-free = true
 # allow = []
 # confidence-threshold = 0.8

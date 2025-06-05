@@ -12,7 +12,7 @@ feature-depth = 1
 ignore = []
 
 [licenses]
-allow-osi-approved = true
+allow-osi-fsf-free = true
 # allow = []
 # confidence-threshold = 0.8
 # exceptions = []

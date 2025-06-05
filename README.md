@@ -10,14 +10,6 @@ This crate lets you verify Firebase ID tokens in Actix Web apps. It’s built to
 
 ## Installation
 
-Manually add the crate to your `Cargo.toml`:
-
-```toml
-actix-firebase-auth = { version = "0.1.0" }
-```
-
-Using **cargo**:
-
 ```bash
 cargo add actix-firebase-auth
 ```
@@ -30,40 +22,20 @@ If verification fails - due to a missing token, expiration, or invalid signature
 
 ### Example
 
-#### Client-side
+See [/examples/server.rs](/examples/server.rs) for a minimal Actix Web server.
 
-A web client must send requests in the following format:
+To run this example:
 
-```http
-GET /whoami HTTP/1.1
-Host: api.example.com
-Authorization: Bearer <Firebase_ID_Token>
+```bash
+cargo run --example server
 ```
 
-#### Server-side
+Make sure to include a valid Firebase ID token in the `Authorization` header when calling protected endpoints:
 
-```rust
-use actix_web::{web, get, App, HttpServer, HttpResponse, Responder};
-use actix_firebase_auth::{FirebaseAuth, FirebaseUser};
-
-#[get("/whoami")]
-async fn whoami(user: FirebaseUser) -> HttpResponse {
-    HttpResponse::Ok().json(user)
-}
-
-#[actix_web::main]
-async fn main() -> std::io::Result<()> {
-    let auth = FirebaseAuth::new("your-project-id").await;
-
-    HttpServer::new(move || {
-        App::new()
-            .app_data(web::Data::new(auth.clone()))
-            .service(whoami)
-    })
-    .bind(("127.0.0.1", 8080))?
-    .run()
-    .await
-}
+```http
+GET /protected HTTP/1.1
+Host: api.example.com
+Authorization: Bearer <Firebase_ID_Token>
 ```
 
 ## Testing

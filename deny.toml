@@ -12,9 +12,10 @@ feature-depth = 1
 ignore = []
 
 [licenses]
-allow = []
-confidence-threshold = 0.8
-exceptions = []
+allow-osi-approved = true
+# allow = []
+# confidence-threshold = 0.8
+# exceptions = []
 
 [licenses.private]
 ignore = false

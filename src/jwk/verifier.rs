@@ -50,14 +50,13 @@ impl JwkVerifier {
             return Err(VerificationError::InvalidKeyAlgorithm);
         }
 
-        let kid = match header.kid {
-            Some(v) => v,
-            None => return Err(VerificationError::NoKidHeader),
+        let Some(kid) = header.kid else {
+            return Err(VerificationError::NoKidHeader);
         };
 
-        let public_key = match self.keys.keys.iter().find(|v| v.kid == kid) {
-            Some(v) => v,
-            None => return Err(VerificationError::NoMatchingKid),
+        let Some(public_key) = self.keys.keys.iter().find(|v| v.kid == kid)
+        else {
+            return Err(VerificationError::NoMatchingKid);
         };
 
         let decoding_key =
@@ -178,15 +177,15 @@ mod tests {
         sub: String,
         aud: String,
         iss: String,
-        exp: usize,
-        iat: usize,
+        exp: u64,
+        iat: u64,
     }
 
-    fn now_as_secs() -> usize {
+    fn now_as_secs() -> u64 {
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
-            .as_secs() as usize
+            .as_secs()
     }
 
     fn valid_claims() -> DummyClaims {
@@ -195,7 +194,7 @@ mod tests {
             sub: "user123".into(),
             aud: "test-project-id".into(),
             iss: "https://securetoken.google.com/test-project-id".into(),
-            exp: now + 3600,
+            exp: now + 3600_u64,
             iat: now,
         }
     }
@@ -242,6 +241,7 @@ mod tests {
 
         // Restore environment to avoid side effects
         #[expect(unsafe_code)]
+        #[expect(clippy::undocumented_unsafe_blocks)]
         unsafe {
             env::remove_var("FIREBASE_AUTH_EMULATOR_HOST");
         }

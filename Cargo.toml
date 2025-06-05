@@ -35,7 +35,7 @@ tracing = "0.1.41"
 actix-rt = "2.10.0"
 httpmock = "0.7.0"
 openssl = { version = "0.10.73", features = [] }
-rand = "0.8.5"
+rand = "0.9.1"
 sha2 = "0.10"
 
 

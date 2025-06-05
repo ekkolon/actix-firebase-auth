@@ -34,7 +34,7 @@ tracing = "0.1.41"
 [dev-dependencies]
 actix-rt = "2.10.0"
 httpmock = "0.7.0"
-rsa = { version = "0.9", features = [] }
+openssl = { version = "0.10.73", features = [] }
 rand = "0.8.5"
 sha2 = "0.10"
 

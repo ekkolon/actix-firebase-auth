@@ -137,11 +137,17 @@ jobs:
         id: check-tag-overwrite
         with:
           tag: ${{  needs.get-version.outputs.new_tag_version }}
+      - name: "Import GPG key"
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.GPG_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: Delete tag
         if: ${{ steps.check-tag-overwrite.outputs.exists == 'true' }}
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
           git fetch --tags
           git tag -d ${{ needs.get-version.outputs.new_tag_version }}
           git push -d origin ${{  needs.get-version.outputs.new_tag_version }}
@@ -152,9 +158,7 @@ jobs:
       - name: Create tag
         if: steps.check-tag.outputs.exists == 'false'
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git tag ${{ needs.get-version.outputs.new_tag_version}}
+          git tag -s ${{ needs.get-version.outputs.new_tag_version}}
           git push origin ${{  needs.get-version.outputs.new_tag_version}}
   create-release:
     needs: [get-version, create-tag]

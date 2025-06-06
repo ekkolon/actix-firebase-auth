@@ -425,7 +425,7 @@ repository = "https://github.com/dropbox/rust-brotli-decompressor"
 
 [[dependencies]]
 name = "bumpalo"
-version = "3.17.0"
+version = "3.18.1"
 description = "A fast bump allocation arena for Rust."
 license = "MIT OR Apache-2.0"
 notices = ["Copyright (c) 2019 Nick Fitzgerald"]
@@ -1170,7 +1170,7 @@ homepage = "https://hyper.rs"
 
 [[dependencies]]
 name = "hyper-util"
-version = "0.1.13"
+version = "0.1.14"
 description = "hyper utilities"
 license = "MIT"
 notices = ["Copyright (c) 2023-2025 Sean McArthur"]

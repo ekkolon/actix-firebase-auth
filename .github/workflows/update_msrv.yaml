@@ -4,6 +4,9 @@ permissions:
 on:
   workflow_call:
   workflow_dispatch:
+env:
+  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+  GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 jobs:
   update-msrv:
     runs-on: ubuntu-latest
@@ -37,6 +40,14 @@ jobs:
           regex: false
           include: "README.md"
       - run: git pull
+      - name: "Import GPG key"
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ env.GPG_PRIVATE_KEY }}
+          passphrase: ${{ env.GPG_PRIVATE_KEY_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: Commit and Push
         uses: stefanzweifel/git-auto-commit-action@v5
         with:

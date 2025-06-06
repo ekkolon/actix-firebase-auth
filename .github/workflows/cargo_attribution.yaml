@@ -7,6 +7,9 @@ on:
       commit_message:
         type: string
   workflow_dispatch:
+env:
+  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+  GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 jobs:
   update-attributions:
     runs-on: ubuntu-latest
@@ -22,7 +25,18 @@ jobs:
           tool: cargo-attribution
       - name: Run cargo attribution
         run: cargo attribution
-      - name: Commit and Push
+      - name: "Import GPG key"
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ env.GPG_PRIVATE_KEY }}
+          passphrase: ${{ env.GPG_PRIVATE_KEY_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
+      - name: "Commit and push changes"
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: update attributions"
+          commit_author: "${{ steps.import-gpg.outputs.name }} <${{ steps.import-gpg.outputs.email }}>"
+          commit_user_name: ${{ steps.import-gpg.outputs.name }}
+          commit_user_email: ${{ steps.import-gpg.outputs.email }}
+          commit_message: "chore: update crate attribution"

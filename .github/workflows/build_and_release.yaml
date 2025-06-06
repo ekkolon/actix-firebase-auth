@@ -31,6 +31,9 @@ on:
         type: boolean
       overwrite_tag:
         type: boolean
+env:
+  GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+  GPG_PRIVATE_KEY_PASSPHRASE: ${{ secrets.GPG_PRIVATE_KEY_PASSPHRASE }}
 jobs:
   validate-input:
     runs-on: ubuntu-latest
@@ -120,11 +123,13 @@ jobs:
     uses: ./.github/workflows/bump_version.yaml
     with:
       crate-version: ${{  needs.get-version.outputs.new_crate_version }}
+    secrets: inherit
   update-attributions:
     needs: [get-version, bump-version]
     uses: ./.github/workflows/cargo_attribution.yaml
     with:
       commit_message: ${{ needs.get-version.outputs.new_crate_version }}
+    secrets: inherit
   create-tag:
     needs: [get-version, update-attributions]
     runs-on: ubuntu-latest
@@ -137,11 +142,17 @@ jobs:
         id: check-tag-overwrite
         with:
           tag: ${{  needs.get-version.outputs.new_tag_version }}
+      - name: "Import GPG key"
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@v6
+        with:
+          gpg_private_key: ${{ env.GPG_PRIVATE_KEY }}
+          passphrase: ${{ env.GPG_PRIVATE_KEY_PASSPHRASE }}
+          git_user_signingkey: true
+          git_commit_gpgsign: true
       - name: Delete tag
         if: ${{ steps.check-tag-overwrite.outputs.exists == 'true' }}
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
           git fetch --tags
           git tag -d ${{ needs.get-version.outputs.new_tag_version }}
           git push -d origin ${{  needs.get-version.outputs.new_tag_version }}
@@ -152,9 +163,7 @@ jobs:
       - name: Create tag
         if: steps.check-tag.outputs.exists == 'false'
         run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git tag ${{ needs.get-version.outputs.new_tag_version}}
+          git tag -s ${{ needs.get-version.outputs.new_tag_version }} -m "chore: release ${{ needs.get-version.outputs.new_tag_version }}"
           git push origin ${{  needs.get-version.outputs.new_tag_version}}
   create-release:
     needs: [get-version, create-tag]

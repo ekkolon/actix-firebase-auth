@@ -9,6 +9,14 @@ license = "MIT OR Apache-2.0"
 categories = ["web-programming", "authentication"]
 keywords = ["actix", "firebase", "auth", "jwt", "jwk"]
 rust-version = "1.82"
+include = [
+    "src/**/*",
+    "Cargo.toml",
+    "/examples",
+    "README.md",
+    "LICENSE-MIT",
+    "LICENSE-APACHE",
+]
 
 [features]
 default = ["openssl"]

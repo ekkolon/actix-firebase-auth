@@ -1,7 +1,6 @@
 # Dependabot
 version: 2
-updates:
-
+updates: []
 # - package-ecosystem: cargo
 #   directory: /
 #   schedule:

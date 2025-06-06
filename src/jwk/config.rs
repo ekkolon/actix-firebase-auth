@@ -1,17 +1,13 @@
-use std::{fmt, ops::Deref};
+use std::ops::Deref;
 
 #[derive(Debug, Clone)]
 pub struct Issuer(String);
 
 impl Issuer {
     pub fn new(project_id: impl AsRef<str>) -> Issuer {
-        Issuer(project_id.as_ref().to_owned())
-    }
-}
-
-impl fmt::Display for Issuer {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "https://securetoken.google.com/{}", &self.0)
+        let issuer =
+            format!("https://securetoken.google.com/{}", project_id.as_ref());
+        Issuer(issuer)
     }
 }
 

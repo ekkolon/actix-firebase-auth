@@ -406,25 +406,35 @@ mod tests {
 
         let claims = valid_claims();
 
-        // Create a different key to sign an *incorrect* token
-        let test_dir = create_temp_test_dir("fails_on_invalid_signature_other");
-        ensure_test_keys_exist(&test_dir);
-        let (n, e, wrong_encoding_key) = load_rsa_keys(&test_dir);
+        // Create a temp dir for the WRONG key (signing key)
+        let wrong_key_dir =
+            create_temp_test_dir("fails_on_invalid_signature_wrong_key");
+        ensure_test_keys_exist(&wrong_key_dir);
+        let (_n_wrong, _e_wrong, wrong_encoding_key) =
+            load_rsa_keys(&wrong_key_dir);
 
+        // Create a JWT using the WRONG key
         let wrong_token =
             encode(&header, &claims, &wrong_encoding_key).unwrap();
 
-        // Verifier has the correct key
+        // Create a DIFFERENT keypair to verify (the verifier should reject the token)
+        let correct_key_dir =
+            create_temp_test_dir("fails_on_invalid_signature_correct_key");
+        ensure_test_keys_exist(&correct_key_dir);
+        let (n_correct, e_correct, _correct_encoding_key) =
+            load_rsa_keys(&correct_key_dir);
+
+        // Verifier is initialized with correct key material (not matching the token's signer)
         let verifier = JwkVerifier::new(
             "test-project-id",
-            jwk_keys_with_kid(kid, &n, &e, "RS256"),
+            jwk_keys_with_kid(kid, &n_correct, &e_correct, "RS256"),
         );
 
-        // Try to verify the incorrectly signed token
+        // This token should fail to verify due to invalid signature
         let result: Result<DummyClaims, _> = verifier.verify(&wrong_token);
 
         assert!(
-            matches!(result, Err(VerificationError::InvalidToken)), // Invalid signature maps to InvalidToken
+            matches!(result, Err(VerificationError::InvalidToken)),
             "Expected InvalidToken for invalid signature, got {result:?}"
         );
     }

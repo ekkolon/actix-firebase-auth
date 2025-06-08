@@ -1,3 +1,4 @@
+use email_address::EmailAddress;
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
 use url::Url;
@@ -39,7 +40,7 @@ pub struct FirebaseUser {
     pub picture: Option<Url>,
 
     /// User's email address
-    pub email: Option<String>,
+    pub email: Option<EmailAddress>,
 
     /// Whether the user's email has been verified
     pub email_verified: Option<bool>,

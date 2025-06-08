@@ -20,8 +20,14 @@ include = [
 
 [features]
 default = ["openssl"]
+
 openssl = ["reqwest/default-tls"]
 rustls = ["reqwest/rustls-tls"]
+
+# Enables support for extracting Google IDP info from Firebase ID tokens
+idp-google = ["idp"]
+# Enables utilities shared by all `idp` features.
+idp = []
 
 [[example]]
 name = "server"

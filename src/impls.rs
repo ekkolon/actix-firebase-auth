@@ -65,6 +65,9 @@ impl ResponseError for Error {
                     StatusCode::UNAUTHORIZED
                 }
             },
+
+            #[cfg(feature = "idp")]
+            Error::IdpError(err) => err.error_response().status(),
         }
     }
 }

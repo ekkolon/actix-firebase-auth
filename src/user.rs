@@ -1,5 +1,6 @@
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
+use url::Url;
 
 /// Represents the decoded JWT claims from a Firebase Authentication token.
 ///
@@ -35,7 +36,7 @@ pub struct FirebaseUser {
     pub name: Option<String>,
 
     /// URL to the user's profile picture (if available)
-    pub picture: Option<String>,
+    pub picture: Option<Url>,
 
     /// User's email address
     pub email: Option<String>,

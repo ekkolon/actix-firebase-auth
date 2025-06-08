@@ -1,28 +1,36 @@
 # actix-firebase-auth
 
-A minimal, hard-fork of [firebase-auth](https://github.com/trchopan/firebase-auth), restructured for better compatibility within an [Actix Web](https://actix.rs/docs) ecosystem.
+Lightweight Firebase Authentication integration for [Actix Web](https://actix.rs/docs).
 
-**NOTICE**: For most use cases, you're likely better served by using the [original firebase-auth crate](https://github.com/trchopan/firebase-auth), which has an active community and provides broader ecosystem support.
+## ✨ Features
 
-## Overview
+This crate provides an easy way to **verify Firebase ID tokens** and **extract authenticated users** in Actix Web applications. It includes:
 
-This crate lets you verify Firebase ID tokens in Actix Web apps. It’s built to work smoothly with Actix’s async runtime, so you can easily protect your routes by checking that incoming requests carry valid Firebase authentication tokens.
+- An Actix-compatible extractor to **automatically validate** and inject `FirebaseUser` into request handlers
 
-## Installation
+- A strongly-typed interface to access decoded Firebase claims
+
+- Optional feature flags for **Identity Provider** (**IdP**) helpers, such as support for extracting Google-specific identity claims (`idp-google`)
+
+- Errors are mapped to appropriate HTTP status codes using Actix’s error conventions
+
+- Authentication failures include the [WWW-Authenticate](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/WWW-Authenticate) header in the response, as specified by [RFC 7235](https://datatracker.ietf.org/doc/html/rfc7235#section-4.1), to ensure compatibility with HTTP authentication standards.
+
+## 📦 Installation
 
 ```bash
 cargo add actix-firebase-auth
 ```
 
-## Usage
+## 🚀 Usage
 
 The `FirebaseUser` struct implements Actix Web’s [FromRequest](https://docs.rs/actix-web/latest/actix_web/trait.FromRequest.html) trait, allowing seamless extraction directly within route handlers. When a route expects a `FirebaseUser`, the middleware automatically attempts to verify the Firebase ID token from the `Authorization` header.
 
 If verification fails - due to a missing token, expiration, or invalid signature - the request is rejected with a `401 Unauthorized` response, ensuring protected routes remain secure by default.
 
-### Example
+### 💡 Example
 
-See [/examples/server.rs](/examples/server.rs) for a minimal Actix Web server.
+See the [examples/server.rs](/examples/server.rs) for a minimal Actix Web server.
 
 To run this example:
 
@@ -38,7 +46,7 @@ Host: api.example.com
 Authorization: Bearer <Firebase_ID_Token>
 ```
 
-## Testing
+## 🧪 Testing
 
 The crate includes a test suite covering:
 
@@ -52,7 +60,11 @@ To run the tests:
 cargo test
 ```
 
-## License
+## 🔗 Similar Projects
+
+This crate is a hard-fork of [firebase-auth](https://github.com/trchopan/firebase-auth), rewritten for better compatibility within the [Actix Web](https://actix.rs/docs) ecosystem.
+
+## ⚖️ License
 
 Licensed under either of
 
@@ -61,6 +73,6 @@ Licensed under either of
 
 at your discretion.
 
-## Contributions
+## 🤝 Contributions
 
 Unless you explicitly state otherwise, any contribution intentionally submitted for inclusion in this work by you, as defined in the Apache-2.0 license, shall be dual licensed as above, without any additional terms or conditions.

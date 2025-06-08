@@ -6,10 +6,10 @@ use std::ops::Deref;
 
 const GOOGLE_IDP_NAME: &str = "Google";
 
-/// Identity Provider ID used by Firebase for Google sign-ins.
+/// Identity Provider ID used by `Firebase` for Google sign-ins.
 pub const GOOGLE_IDP_ID: &str = "google.com";
 
-/// Wrapper for a Google-specific user ID, extracted from a Firebase ID token.
+/// Wrapper for a Google-specific user ID, extracted from a `Firebase` ID token.
 ///
 /// This is the unique identifier assigned by Google for the user (e.g., their Google account UID).
 #[derive(Clone, Debug, Serialize, Deserialize, PartialEq, Eq, Hash)]
@@ -32,7 +32,7 @@ impl Deref for GoogleUserId {
 impl TryFrom<&FirebaseUser> for GoogleUserId {
     type Error = crate::Error;
 
-    /// Attempts to extract the Google user ID from a FirebaseUser.
+    /// Attempts to extract the Google user ID from a `FirebaseUser`.
     ///
     /// # Errors
     /// Returns `FirebaseIdpError` if no Google identity is linked to the user.
@@ -43,9 +43,9 @@ impl TryFrom<&FirebaseUser> for GoogleUserId {
             .identities
             .get(GOOGLE_IDP_ID)
             .and_then(serde_json::Value::as_array)
-            .and_then(|arr| arr.get(0))
+            .and_then(|arr| arr.first())
             .and_then(serde_json::Value::as_str)
-            .ok_or_else(|| FirebaseIdpError::MissingIdpClaims {
+            .ok_or(FirebaseIdpError::MissingIdpClaims {
                 provider: GOOGLE_IDP_NAME,
             })
             .map_err(crate::Error::IdpError)

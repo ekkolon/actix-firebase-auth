@@ -1,9 +1,9 @@
-//! Error types related to Firebase Identity Provider (IdP) claim extraction.
+//! Error types related to Firebase Identity Provider (`IdP`) claim extraction.
 
 use actix_web::{http::StatusCode, HttpResponse, ResponseError};
 use thiserror::Error;
 
-/// Represents an error encountered when working with Firebase Identity Provider (IdP) claims.
+/// Represents an error encountered when working with Firebase Identity Provider (`IdP`) claims.
 ///
 /// This error type is typically used when extracting provider-specific identity information
 /// (e.g., a Google user ID from the `firebase.identities` map in a Firebase ID token).

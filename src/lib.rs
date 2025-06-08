@@ -33,10 +33,10 @@
 
 mod client;
 mod error;
+mod firebase;
 mod impls;
 mod jwk;
-mod user;
 
 pub use client::*;
 pub use error::*;
-pub use user::*;
+pub use firebase::*;

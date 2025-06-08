@@ -11,4 +11,9 @@ pub enum Error {
     /// Errors that occur during JWT verification or claim validation.
     #[error(transparent)]
     VerificationError(#[from] crate::jwk::VerificationError),
+
+    /// Errors that occur during Firebase identity provider claim validation.
+    #[cfg(feature = "idp")]
+    #[error(transparent)]
+    IdpError(#[from] crate::firebase::FirebaseIdpError),
 }
